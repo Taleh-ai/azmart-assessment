@@ -1,0 +1,33 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Documentation and evidence
+README.md
+AI_USAGE.md
+evidence/
+
+# Docker files (avoid recursion)
+docker-compose.yaml
+.dockerignore
+
+# Dataset files (typically not needed in production containers)
+candidate_package/dataset/
+
+# Package management (unless specifically needed)
+pyproject.toml
+uv.lock
