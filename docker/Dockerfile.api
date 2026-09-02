@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends socat \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY candidate_package/mock_api_server.py candidate_package/server_data.bin ./
+COPY docker/api_start.sh ./
+RUN chmod +x api_start.sh
+EXPOSE 8080
+CMD ["./api_start.sh"]
