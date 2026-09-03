@@ -1,3 +1,28 @@
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: docker/Dockerfile.app
+  user: "${AIRFLOW_UID:-50000}:0"
+  environment: &airflow-env
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-azmart}:${POSTGRES_PASSWORD:-azmart}@postgres/airflow_meta
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-azmart-local-jwt-secret}
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+    PYTHONDONTWRITEBYTECODE: "1"
+    API_BASE_URL: http://mock-api:8080
+    API_KEY: ${API_KEY:-azcon-de-2026}
+    WAREHOUSE_DSN: postgresql://${POSTGRES_USER:-azmart}:${POSTGRES_PASSWORD:-azmart}@postgres/azmart
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./ingestion:/opt/airflow/ingestion:ro
+    - ./evidence:/opt/airflow/evidence
+    - ./reports:/opt/airflow/reports
+    - ./analytics/results:/opt/airflow/analytics/results
+    - airflow-logs:/opt/airflow/logs
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -28,5 +53,48 @@ services:
       timeout: 5s
       retries: 12
 
+  airflow-init:
+    <<: *airflow-common
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: db migrate
+    restart: "no"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    command: api-server
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    depends_on:
+      airflow-apiserver:
+        condition: service_healthy
+      mock-api:
+        condition: service_healthy
+    command: scheduler
+    restart: unless-stopped
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    depends_on:
+      airflow-apiserver:
+        condition: service_healthy
+    command: dag-processor
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  airflow-logs:
