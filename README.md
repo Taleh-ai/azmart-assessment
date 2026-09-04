@@ -8,6 +8,10 @@
 - API datası profilləndi, 18 DQ problemi say və nümunə ID ilə qeyd olundu
 
 ### 3 sentyabr
-- `docker-compose.yaml`: airflow elave edildi , init dbler hazirlandi sxema ve bazalar ucun 
-- Airflow ucun baza yaradildi , Medallion ucun sxemalar yaradildi 
-- 
+- `docker-compose.yaml`-a Airflow əlavə olundu: `init` → `apiserver` → `scheduler` / `dag-processor`, asılılıqlar healthcheck üzərindən
+- `docker/initdb/` skriptləri: `airflow_meta` bazası, `azmart` içində `bronze` / `silver` / `gold` / `quarantine` sxemləri
+
+### 4 sentyabr
+- `docker/Dockerfile.app` və `requirements-app.txt` — dbt və Soda Airflow image-ının içinə əlavə olundu (ayrıca servis kimi yox, `BashOperator` çağırır)
+- dbt və Soda üçün mount-lar və env dəyişənləri compose-a əvvəlcədən yazıldı: `DBT_PROFILES_DIR`, `DBT_TARGET_PATH`, `POSTGRES_*`
+- Bütün stack sıfırdan qaldırıldı və yoxlandı — 6 servis healthy, Airflow UI açılır, `dbt --version` konteynerdə işləyir
