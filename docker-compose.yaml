@@ -3,7 +3,7 @@ x-airflow-common: &airflow-common
     context: .
     dockerfile: docker/Dockerfile.app
   user: "${AIRFLOW_UID:-50000}:0"
-  environment: &airflow-env
+  environment:
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-azmart}:${POSTGRES_PASSWORD:-azmart}@postgres/airflow_meta
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
@@ -11,17 +11,36 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
     AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-azmart-local-jwt-secret}
     AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+    PYTHONPATH: /opt/airflow
     PYTHONDONTWRITEBYTECODE: "1"
+
     API_BASE_URL: http://mock-api:8080
     API_KEY: ${API_KEY:-azcon-de-2026}
+    DATASET_DIR: /opt/airflow/candidate_package/dataset
+
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_USER: ${POSTGRES_USER:-azmart}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-azmart}
+    POSTGRES_DB: azmart
     WAREHOUSE_DSN: postgresql://${POSTGRES_USER:-azmart}:${POSTGRES_PASSWORD:-azmart}@postgres/azmart
+
+    DBT_BIN: /home/airflow/dbt-venv/bin/dbt
+    SODA_BIN: /home/airflow/soda-venv/bin/soda
+    DBT_PROFILES_DIR: /opt/airflow/dbt_project
+    DBT_TARGET_PATH: /opt/airflow/dbt_state/target
+    DBT_LOG_PATH: /opt/airflow/dbt_state/logs
   volumes:
     - ./dags:/opt/airflow/dags:ro
     - ./ingestion:/opt/airflow/ingestion:ro
+    - ./candidate_package:/opt/airflow/candidate_package:ro
+    - ./soda:/opt/airflow/soda:ro
+    - ./dbt_project:/opt/airflow/dbt_project
     - ./evidence:/opt/airflow/evidence
     - ./reports:/opt/airflow/reports
-    - ./analytics/results:/opt/airflow/analytics/results
+    - ./analytics:/opt/airflow/analytics
     - airflow-logs:/opt/airflow/logs
+    - dbt-state:/opt/airflow/dbt_state
 
 services:
   postgres:
@@ -98,3 +117,4 @@ services:
 volumes:
   pgdata:
   airflow-logs:
+  dbt-state:
