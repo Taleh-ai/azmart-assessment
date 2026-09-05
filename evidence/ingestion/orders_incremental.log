@@ -1,4 +1,0 @@
-2026-09-05 19:01:11,433 INFO orders page: 200 records
-2026-09-05 19:01:11,435 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
-2026-09-05 19:01:13,454 INFO orders page: 122 records
-2026-09-05 19:01:13,489 INFO bronze.orders: 322 rows for load_id orders_2026-08-25_2026-08-26
