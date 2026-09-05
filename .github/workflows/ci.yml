@@ -61,5 +61,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ~/azmart-assessment
-            git pull origin main
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
             docker compose up -d --build
