@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check ingestion dags
+
+  dag-and-dbt-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.app
+          tags: azmart-app:ci
+          push: false
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: DAG import check
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/dags:/opt/airflow/dags \
+            -v ${{ github.workspace }}/scripts:/opt/airflow/scripts \
+            azmart-app:ci python /opt/airflow/scripts/check_dag_imports.py
+      - name: dbt parse
+        run: |
+          if [ -f dbt_project/dbt_project.yml ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/dbt_project:/opt/airflow/dbt_project \
+              azmart-app:ci dbt parse --project-dir /opt/airflow/dbt_project --profiles-dir /opt/airflow/dbt_project
+          else
+            echo "dbt_project.yml yoxdur, bu addim kecilir"
+          fi
+
+  deploy:
+    needs: [lint, dag-and-dbt-check]
+    runs-on: azmart-runner
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build
