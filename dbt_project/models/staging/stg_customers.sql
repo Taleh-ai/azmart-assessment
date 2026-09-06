@@ -13,7 +13,7 @@ with customers as (
         segment,
         signup_date::date as signup_date,
         updated_at::timestamptz as updated_at,
-        snapshot_date,
+        snapshot_date::date as snapshot_date,
         row_number() over (
             partition by customer_id, snapshot_date
             order by updated_at::timestamptz desc

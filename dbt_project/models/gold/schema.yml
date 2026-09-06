@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Təqvim dimension-u, 2026-ci ilin bütün günləri.
+    columns:
+      - name: date_key
+        description: Surrogate key (YYYYMMDD tam ədəd formatında).
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_product
+    description: Məhsul dimension-u — tarixçəsiz, natural key (`product_id`) həm də surrogate key kimi işlədilir.
+    columns:
+      - name: product_id
+        description: Məhsul ID-si, surrogate key kimi də istifadə olunur.
+        tests:
+          - not_null
+          - unique
