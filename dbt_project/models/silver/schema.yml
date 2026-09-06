@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: stg_order_lines
+    description: Bronze sifariş sətirlərinin parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: order_lines
+    description: Silver-in təmiz sifariş sətirləri — reason_code null olan, quarantine-ə düşməyən sətirlər.
+    columns:
+      - name: order_id
+        description: Sifariş ID-si.
+        tests:
+          - not_null
+      - name: line_number
+        description: Sifariş daxilində sətir sırası (1-dən başlayır).
+        tests:
+          - not_null
+      - name: customer_id
+        description: Müştəri ID-si, bronze.customers-də mövcudluğu təsdiqlənib.
+        tests:
+          - not_null
+      - name: product_id
+        description: Məhsul ID-si, bronze.products-də mövcudluğu təsdiqlənib.
+        tests:
+          - not_null
+      - name: currency
+        description: Standartlaşdırılmış (böyük hərf, boşluqsuz) valyuta kodu.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["AZN", "USD", "EUR", "TRY"]
+
+  - name: order_lines_rejected
+    description: Silver standartlaşdırma qaydalarını keçməyən sətirlər, reason_code ilə quarantine.order_lines-a yazılır.
+
+  - name: stg_customers
+    description: Bronze müştəri snapshot-larının parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: customers
+    description: Silver-in təmiz müştəri snapshot-ları — grain (customer_id, snapshot_date).
+    columns:
+      - name: customer_id
+        description: Müştəri ID-si.
+        tests:
+          - not_null
+      - name: snapshot_date
+        description: Snapshot faylının tarixi.
+        tests:
+          - not_null
+
+  - name: customers_rejected
+    description: Silver standartlaşdırma qaydalarını keçməyən müştəri sətirləri, quarantine.customers-a yazılır.
+
+  - name: stg_products
+    description: Bronze məhsul kataloqunun parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: products
+    description: Silver-in təmiz məhsul kataloqu — grain product_id.
+    columns:
+      - name: product_id
+        description: Məhsul ID-si.
+        tests:
+          - not_null
+          - unique
+      - name: currency
+        description: Standartlaşdırılmış valyuta kodu.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["AZN", "USD", "EUR", "TRY"]
+
+  - name: products_rejected
+    description: Silver standartlaşdırma qaydalarını keçməyən məhsul sətirləri, quarantine.products-a yazılır.

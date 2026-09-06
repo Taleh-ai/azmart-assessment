@@ -44,7 +44,7 @@ with DAG(
         BashOperator(
             task_id="dbt_run",
             bash_command=(
-                "$DBT_BIN run --project-dir /opt/airflow/dbt_project "
+                "$DBT_BIN build --project-dir /opt/airflow/dbt_project "
                 "--profiles-dir $DBT_PROFILES_DIR "
                 "--target-path $DBT_TARGET_PATH --log-path $DBT_LOG_PATH"
             ),
