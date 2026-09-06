@@ -5,6 +5,7 @@ profile: azmart
 
 model-paths: ["models"]
 macro-paths: ["macros"]
+test-paths: ["tests"]
 clean-targets: ["target"]
 
 models:
