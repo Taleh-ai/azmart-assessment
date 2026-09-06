@@ -1,5 +1,3 @@
-{{ config(materialized='view') }}
-
 with orders as (
     select
         payload->>'order_id' as order_id,

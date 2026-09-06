@@ -1,9 +1,6 @@
 version: 2
 
 models:
-  - name: stg_order_lines
-    description: Bronze sifariş sətirlərinin parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
-
   - name: order_lines
     description: Silver-in təmiz sifariş sətirləri — reason_code null olan, quarantine-ə düşməyən sətirlər.
     columns:
@@ -33,9 +30,6 @@ models:
   - name: order_lines_rejected
     description: Silver standartlaşdırma qaydalarını keçməyən sətirlər, reason_code ilə quarantine.order_lines-a yazılır.
 
-  - name: stg_customers
-    description: Bronze müştəri snapshot-larının parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
-
   - name: customers
     description: Silver-in təmiz müştəri snapshot-ları — grain (customer_id, snapshot_date).
     columns:
@@ -50,9 +44,6 @@ models:
 
   - name: customers_rejected
     description: Silver standartlaşdırma qaydalarını keçməyən müştəri sətirləri, quarantine.customers-a yazılır.
-
-  - name: stg_products
-    description: Bronze məhsul kataloqunun parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
 
   - name: products
     description: Silver-in təmiz məhsul kataloqu — grain product_id.
@@ -71,3 +62,22 @@ models:
 
   - name: products_rejected
     description: Silver standartlaşdırma qaydalarını keçməyən məhsul sətirləri, quarantine.products-a yazılır.
+
+  - name: order_status_history
+    description: Sifariş status tarixçəsi — dedup edilmiş, event_ts-ə görə sıralana bilən CDC event-ləri (tombstone event-lər daxil).
+    columns:
+      - name: event_id
+        description: Event ID-si.
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        description: Sifariş ID-si.
+        tests:
+          - not_null
+
+  - name: order_status_history_rejected
+    description: Naməlum sifarişə aid event-lər, quarantine.order_events-ə yazılır.
+
+  - name: order_status_reconciliation
+    description: Hər sifariş üçün event-lərdən çıxan son status ilə API snapshot statusunun müqayisəsi — kanonik qayda 4-ün əsaslandırılması üçün evidence.
