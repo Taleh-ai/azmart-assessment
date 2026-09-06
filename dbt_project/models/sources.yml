@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: orders
+      - name: fx_rates
+      - name: customers
+      - name: products
+      - name: events
