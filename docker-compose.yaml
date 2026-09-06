@@ -25,11 +25,12 @@ x-airflow-common: &airflow-common
     POSTGRES_DB: azmart
     WAREHOUSE_DSN: postgresql://${POSTGRES_USER:-azmart}:${POSTGRES_PASSWORD:-azmart}@postgres/azmart
 
-    DBT_BIN: /home/airflow/dbt-venv/bin/dbt
-    SODA_BIN: /home/airflow/soda-venv/bin/soda
+    DBT_BIN: /home/airflow/.local/bin/dbt
+    SODA_BIN: /home/airflow/.local/bin/soda
     DBT_PROFILES_DIR: /opt/airflow/dbt_project
     DBT_TARGET_PATH: /opt/airflow/dbt_state/target
     DBT_LOG_PATH: /opt/airflow/dbt_state/logs
+    DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
   volumes:
     - ./dags:/opt/airflow/dags:ro
     - ./ingestion:/opt/airflow/ingestion:ro

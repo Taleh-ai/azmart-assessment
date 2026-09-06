@@ -1,0 +1,12 @@
+azmart:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
+      user: "{{ env_var('POSTGRES_USER', 'azmart') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'azmart') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'azmart') }}"
+      schema: public
+      threads: 4

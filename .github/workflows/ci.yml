@@ -42,9 +42,11 @@ jobs:
       - name: dbt parse
         run: |
           if [ -f dbt_project/dbt_project.yml ]; then
-            docker run --rm \
+            docker run --rm --entrypoint dbt \
+              -e DBT_SEND_ANONYMOUS_USAGE_STATS=false \
               -v ${{ github.workspace }}/dbt_project:/opt/airflow/dbt_project \
-              azmart-app:ci dbt parse --project-dir /opt/airflow/dbt_project --profiles-dir /opt/airflow/dbt_project
+              azmart-app:ci parse --project-dir /opt/airflow/dbt_project --profiles-dir /opt/airflow/dbt_project \
+              --target-path /tmp/dbt_target --log-path /tmp/dbt_logs
           else
             echo "dbt_project.yml yoxdur, bu addim kecilir"
           fi

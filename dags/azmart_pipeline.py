@@ -39,3 +39,15 @@ with DAG(
             task_id="ingest_events",
             bash_command="python -m ingestion.ingest_events --file events/order_events_{{ ds }}.ndjson",
         )
+
+    with TaskGroup(group_id="silver") as silver:
+        BashOperator(
+            task_id="dbt_run",
+            bash_command=(
+                "$DBT_BIN run --project-dir /opt/airflow/dbt_project "
+                "--profiles-dir $DBT_PROFILES_DIR "
+                "--target-path $DBT_TARGET_PATH --log-path $DBT_LOG_PATH"
+            ),
+        )
+
+    bronze >> silver
