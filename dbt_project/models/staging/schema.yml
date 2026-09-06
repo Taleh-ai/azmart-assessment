@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: stg_order_lines
+    description: Bronze sifariş sətirlərinin parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: stg_customers
+    description: Bronze müştəri snapshot-larının parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: stg_products
+    description: Bronze məhsul kataloqunun parse olunmuş aralıq modeli, hər sətrə reason_code təyin edir.
+
+  - name: stg_order_events
+    description: Bronze CDC event-lərinin parse olunmuş aralıq modeli (dedup edilmiş), naməlum sifarişə aid event-lərə reason_code təyin edir.

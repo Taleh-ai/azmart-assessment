@@ -1,5 +1,3 @@
-{{ config(materialized='view') }}
-
 with customers as (
     select
         customer_id,

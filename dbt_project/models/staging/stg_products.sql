@@ -1,5 +1,3 @@
-{{ config(materialized='view') }}
-
 with products as (
     select
         product_id,

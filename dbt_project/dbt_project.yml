@@ -10,6 +10,9 @@ clean-targets: ["target"]
 
 models:
   azmart:
+    staging:
+      +materialized: view
+      +schema: silver
     silver:
       +materialized: table
       +schema: silver
