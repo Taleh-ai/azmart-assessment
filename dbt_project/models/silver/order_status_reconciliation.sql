@@ -19,6 +19,7 @@ select
     o.order_id,
     o.api_status,
     e.event_status,
+    coalesce(e.event_status, o.api_status) as final_status,
     e.latest_event_op,
     case
         when e.latest_event_op = 'd' then 'tombstone_erasure'
