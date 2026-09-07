@@ -1,0 +1,19 @@
+checks for orders:
+  - row_count > 0
+  - freshness(_ingested_at) < 7d
+
+checks for customers:
+  - row_count > 0
+  - freshness(_ingested_at) < 7d
+
+checks for products:
+  - row_count > 0
+  - freshness(_ingested_at) < 7d
+
+checks for events:
+  - row_count > 0
+  - freshness(_ingested_at) < 7d
+
+checks for fx_rates:
+  - row_count > 0
+  - freshness(_ingested_at) < 7d
