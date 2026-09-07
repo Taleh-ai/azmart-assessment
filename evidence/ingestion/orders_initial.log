@@ -1,0 +1,37 @@
+2026-09-07 20:05:59,694 INFO orders page: 200 records
+2026-09-07 20:05:59,700 INFO orders page: 200 records
+2026-09-07 20:05:59,707 INFO orders page: 200 records
+2026-09-07 20:05:59,715 INFO orders page: 200 records
+2026-09-07 20:05:59,718 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:01,725 INFO orders page: 200 records
+2026-09-07 20:06:01,727 WARNING 500 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:03,734 INFO orders page: 200 records
+2026-09-07 20:06:03,741 INFO orders page: 200 records
+2026-09-07 20:06:03,744 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:05,750 INFO orders page: 200 records
+2026-09-07 20:06:05,755 INFO orders page: 200 records
+2026-09-07 20:06:05,760 INFO orders page: 200 records
+2026-09-07 20:06:05,763 WARNING 500 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:07,766 WARNING 429 on /api/v1/orders, attempt 2/8, waiting 2.0s
+2026-09-07 20:06:09,773 INFO orders page: 200 records
+2026-09-07 20:06:09,779 INFO orders page: 200 records
+2026-09-07 20:06:09,785 INFO orders page: 200 records
+2026-09-07 20:06:09,790 INFO orders page: 200 records
+2026-09-07 20:06:09,793 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:11,798 WARNING 500 on /api/v1/orders, attempt 2/8, waiting 4.0s
+2026-09-07 20:06:15,804 INFO orders page: 200 records
+2026-09-07 20:06:15,809 INFO orders page: 200 records
+2026-09-07 20:06:15,814 INFO orders page: 200 records
+2026-09-07 20:06:15,817 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:17,825 INFO orders page: 200 records
+2026-09-07 20:06:17,830 INFO orders page: 200 records
+2026-09-07 20:06:17,834 WARNING 500 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:19,841 INFO orders page: 200 records
+2026-09-07 20:06:19,844 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:21,850 INFO orders page: 200 records
+2026-09-07 20:06:21,857 INFO orders page: 200 records
+2026-09-07 20:06:21,861 INFO orders page: 200 records
+2026-09-07 20:06:21,868 INFO orders page: 200 records
+2026-09-07 20:06:21,870 WARNING 429 on /api/v1/orders, attempt 1/8, waiting 2.0s
+2026-09-07 20:06:23,876 INFO orders page: 80 records
+2026-09-07 20:06:24,060 INFO bronze.orders: 4880 rows for load_id orders_2026-01-01_2026-08-25

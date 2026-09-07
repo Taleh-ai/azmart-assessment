@@ -1,0 +1,13 @@
+[20:11:08] Soda Core 3.5.6
+[20:11:09] Scan summary:
+[20:11:09] 6/6 checks PASSED: 
+[20:11:09]     orders in azmart
+[20:11:09]       row_count > 0 [PASSED]
+[20:11:09]       freshness(_ingested_at) < 7d [PASSED]
+[20:11:09]     products in azmart
+[20:11:09]       row_count > 0 [PASSED]
+[20:11:09]       freshness(_ingested_at) < 7d [PASSED]
+[20:11:09]     fx_rates in azmart
+[20:11:09]       row_count > 0 [PASSED]
+[20:11:09]       freshness(_ingested_at) < 7d [PASSED]
+[20:11:09] All is good. No failures. No warnings. No errors.
