@@ -18,3 +18,45 @@ models:
         tests:
           - not_null
           - unique
+
+  - name: dim_customer
+    description: >
+      Müştəri dimension-u, SCD Type 2. İki snapshot (2026-08-24, 2026-08-25) müqayisə
+      olunub — sahə dəyişikliyi olan müştərilər üçün 2 versiya, yox olan müştəri üçün
+      is_current=false. İlk versiyanın valid_from-u 2020-01-01-ə sabitlənib ki, avqustdan
+      əvvəlki sifarişlər də bir versiyaya uyğunlaşa bilsin (real tarixçəmiz yalnız 2 gündür).
+    columns:
+      - name: customer_key
+        description: Surrogate key — md5(customer_id + valid_from). Natural key SCD2-də təkrarlandığı üçün lazımdır.
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: Natural key.
+        tests:
+          - not_null
+
+  - name: fct_order_lines
+    description: >
+      Sifariş sətri fact cədvəli, grain = (order_id, line_number). gross_amount_azn
+      point-in-time FX (as-of-backward) ilə hesablanıb. is_recognized = final_status
+      CANCELLED/REFUNDED olmadıqda true (kanonik qayda 3).
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: line_number
+        tests:
+          - not_null
+      - name: gross_amount_azn
+        description: AZN-ə çevrilmiş ümumi məbləğ (quantity * unit_price * rate_azn).
+        tests:
+          - not_null
+
+  - name: fct_order_status_events
+    description: Status event fact cədvəli, grain = event_id (silver.order_status_history-in eynisi, dimension key-lərlə zənginləşdirilib).
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
