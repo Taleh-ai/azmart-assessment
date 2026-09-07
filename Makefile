@@ -1,4 +1,4 @@
-.PHONY: bootstrap backfill run dbt-test down logs
+.PHONY: bootstrap backfill run dbt-test analytics down logs
 
 bootstrap:
 	docker compose up -d --build
@@ -13,6 +13,13 @@ run: backfill
 
 dbt-test:
 	docker compose exec airflow-scheduler bash -c '$$DBT_BIN test --project-dir /opt/airflow/dbt_project --profiles-dir $$DBT_PROFILES_DIR --target-path $$DBT_TARGET_PATH --log-path $$DBT_LOG_PATH'
+
+analytics:
+	@for f in analytics/queries/0[1-5]*.sql; do \
+		name=$$(basename "$$f" .sql); \
+		echo "=== $$name ==="; \
+		docker compose exec -T postgres psql -U azmart -d azmart --csv -f - < "$$f" > "analytics/results/$$name.csv"; \
+	done
 
 down:
 	docker compose down
