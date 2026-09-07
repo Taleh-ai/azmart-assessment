@@ -4,6 +4,10 @@ bootstrap:
 	docker compose up -d --build
 
 run:
+	docker compose exec airflow-scheduler python -m ingestion.ingest_orders --since 2026-01-01 --until 2026-07-15
+	docker compose exec airflow-scheduler python -m ingestion.ingest_fx --since 2026-01-01 --until 2026-07-15
+	docker compose exec airflow-scheduler python -m ingestion.ingest_orders --since 2026-07-16 --until 2026-08-24
+	docker compose exec airflow-scheduler python -m ingestion.ingest_fx --since 2026-07-16 --until 2026-08-24
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-24
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-25
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-07-15
