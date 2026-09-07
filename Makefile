@@ -11,6 +11,7 @@ run: backfill
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-24
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-25
 
+
 dbt-test:
 	docker compose exec airflow-scheduler bash -c '$$DBT_BIN test --project-dir /opt/airflow/dbt_project --profiles-dir $$DBT_PROFILES_DIR --target-path $$DBT_TARGET_PATH --log-path $$DBT_LOG_PATH'
 
