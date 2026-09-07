@@ -55,6 +55,15 @@ with DAG(
             bash_command="python -m ingestion.ingest_events --file events/order_events_{{ ds }}.ndjson",
         )
 
+    soda_check_bronze = BashOperator(
+        task_id="soda_check_bronze",
+        trigger_rule="none_failed",
+        bash_command=(
+            "$SODA_BIN scan -d azmart -c /opt/airflow/soda/configuration.yml "
+            "/opt/airflow/soda/checks/bronze_always.yml"
+        ),
+    )
+
     with TaskGroup(group_id="silver") as silver:
         BashOperator(
             task_id="dbt_run",
@@ -82,4 +91,4 @@ with DAG(
             ),
         )
 
-    bronze >> silver >> gold
+    bronze >> soda_check_bronze >> silver >> gold
