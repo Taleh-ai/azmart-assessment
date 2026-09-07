@@ -11,7 +11,7 @@ with orders as (
             when payload->>'order_ts' ~ '^\d+$'
                 then to_timestamp((payload->>'order_ts')::bigint / 1000.0)
             when payload->>'order_ts' ~ '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$'
-                then (to_timestamp(payload->>'order_ts', 'DD.MM.YYYY HH24:MI:SS') at time zone 'Asia/Baku')
+                then (to_timestamp(payload->>'order_ts', 'DD.MM.YYYY HH24:MI:SS')::timestamp at time zone 'Asia/Baku')
             else (payload->>'order_ts')::timestamptz
         end as order_ts,
         case

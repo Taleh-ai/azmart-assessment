@@ -58,6 +58,7 @@ with DAG(
     with TaskGroup(group_id="silver") as silver:
         BashOperator(
             task_id="dbt_run",
+            trigger_rule="none_failed",
             bash_command=(
                 "$DBT_BIN build --project-dir /opt/airflow/dbt_project "
                 "--profiles-dir $DBT_PROFILES_DIR "
@@ -70,6 +71,7 @@ with DAG(
     with TaskGroup(group_id="gold") as gold:
         BashOperator(
             task_id="dbt_run",
+            trigger_rule="none_failed",
             bash_command=(
                 "$DBT_BIN build --project-dir /opt/airflow/dbt_project "
                 "--profiles-dir $DBT_PROFILES_DIR "
