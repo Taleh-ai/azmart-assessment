@@ -34,6 +34,18 @@ Analitika sorğularını (`analytics/queries/`) real dataya qarşı yenidən iş
 make analytics
 ```
 
+## Sübut (evidence)
+
+`docker compose ps` — 6 servis healthy:
+
+![docker compose ps](evidence/docker-compose-ps.png)
+
+Airflow DAG-ın uğurlu run tarixçəsi:
+
+![Airflow DAG history](evidence/airflow-dag-history.png)
+
+Ətraflı log-lar: `evidence/ingestion/` (429/500 retry-lar), `evidence/airflow/` (`dags test` çıxışı), `evidence/dbt/`, `evidence/soda/`.
+
 ## Arxitektura xülasəsi
 
 - **Warehouse:** PostgreSQL 16 (bir instans, iki database: `airflow_meta`, `azmart`). DuckDB yox — Hissə 4-də paralel bronze task-lar üçün MVCC lazımdır.
