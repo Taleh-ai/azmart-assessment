@@ -2,7 +2,7 @@ with products as (
     select
         product_id,
         product_name,
-        category,
+        coalesce(nullif(trim(category), ''), 'Uncategorized') as category,
         case
             when unit_price like '%,%'
                 then nullif(replace(unit_price, ',', ''), '')::numeric
