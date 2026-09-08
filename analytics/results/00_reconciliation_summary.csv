@@ -1,0 +1,5 @@
+stage,row_count,gross_azn,recognized_azn
+bronze.orders,5202,,
+silver.order_lines (valid),10693,,
+quarantine.order_lines,15,,
+gold.fct_order_lines,10693,5391192.11,4831654.45
