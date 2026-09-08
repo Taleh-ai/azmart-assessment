@@ -62,8 +62,8 @@ def main():
                 continue
             event_rows.append((Json(payload), source_file, line_no, SOURCE, batch_id, load_id))
 
-    replace_load(DELETE_EVENTS_SQL, INSERT_EVENTS_SQL, load_id, event_rows)
-    replace_load(DELETE_QUARANTINE_SQL, INSERT_QUARANTINE_SQL, load_id, quarantine_rows)
+    replace_load(DELETE_EVENTS_SQL, INSERT_EVENTS_SQL, (load_id,), event_rows)
+    replace_load(DELETE_QUARANTINE_SQL, INSERT_QUARANTINE_SQL, (load_id,), quarantine_rows)
 
     log.info("bronze.events: %d rows, %d quarantined, load_id %s",
               len(event_rows), len(quarantine_rows), load_id)

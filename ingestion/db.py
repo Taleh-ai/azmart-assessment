@@ -15,7 +15,7 @@ def run_script(path):
         cur.execute(script.read())
 
 
-def replace_load(delete_sql, insert_sql, load_id, rows):
+def replace_load(delete_sql, insert_sql, delete_params, rows):
     with connect() as conn, conn.cursor() as cur:
-        cur.execute(delete_sql, (load_id,))
+        cur.execute(delete_sql, delete_params)
         execute_batch(cur, insert_sql, rows, page_size=500)
