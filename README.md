@@ -46,6 +46,14 @@ Airflow DAG-ın uğurlu run tarixçəsi:
 
 Ətraflı log-lar: `evidence/ingestion/` (429/500 retry-lar), `evidence/airflow/` (`dags test` çıxışı), `evidence/dbt/`, `evidence/soda/`.
 
+CI/CD (`main`-ə merge → self-hosted runner → SSH deploy) real run-da işləyir, o cümlədən şərtli rebuild məntiqi (yalnız Dockerfile/requirements/compose dəyişəndə `docker compose up -d --build`, əks halda `git reset --hard` kifayətdir, çünki dags/dbt_project/soda bind-mount-dur):
+
+![CI/CD workflow runs](evidence/ci-cd-workflow-runs.png)
+
+Deploy job-un log-u — `"mounted files only, skipping rebuild"` sətri şərtli rebuild-in real işlədiyinin sübutudur:
+
+![CI/CD deploy log](evidence/ci-cd-deploy-log.png)
+
 ## Arxitektura xülasəsi
 
 - **Warehouse:** PostgreSQL 16 (bir instans, iki database: `airflow_meta`, `azmart`). DuckDB yox — Hissə 4-də paralel bronze task-lar üçün MVCC lazımdır.
@@ -102,3 +110,15 @@ Airflow DAG-ın uğurlu run tarixçəsi:
 - `DQ_REPORT.md`, bu README, `ARCHITECTURE.md`, `AI_USAGE.md` yazıldı
 - `Makefile` yaradıldı (`bootstrap`/`run`/`dbt-test`/`analytics`)
 - Nəticə: real serverdə sıfırdan `make bootstrap && make run` işlədilib, DQ_REPORT.md-dəki bütün rəqəmlər (quarantine 15/1/3/1/1, reconciliation 27) iki müstəqil mühitdə eyni çıxdı
+
+### 8 sentyabr
+- Bug tapıldı və düzəldildi: `stg_order_lines`-da `order_ts`-in `DD.MM.YYYY` formatının ikiqat timezone konversiyası (8 saatlıq səhv, 416 sətir)
+- `DAGS_ARE_PAUSED_AT_CREATION` `"false"` → `"true"` — fresh DAG-ın yaradılışda avtomatik unpause olması riski bağlandı
+- Soda DQ gate DAG-a əlavə olundu (`soda_check_bronze`), bilərəkdən `customers`/`events`-i xaric edir (skip-cascade riskindən qorunmaq üçün)
+- Assessment spesifikasiyası ilə tam audit aparıldı: 2 boşluq tapıldı (`evidence/ingestion/` çatışmırdı, analitika CSV-ləri köhnəlmişdi) — ikisi də real serverdə real evidence ilə bağlandı
+
+### 9 sentyabr
+- **Qərar — bronze reload idempotentliyi:** `_load_id`-ə əsaslanan `DELETE` yalnız tam eyni load_id-ni silirdi — fərqli, üst-üstə düşən intervallı reload (məs. iki fərqli backfill komandası) dublikat yaradırdı. `ingest_orders`/`ingest_fx`-in `DELETE`-i load_id-dən tarix-aralığı-əsaslıya (`updated_at`/`rate_date`) keçirildi — real overlap ssenarisi ilə test edildi, dublikat sıfır.
+- **dbt incremental:** `order_lines`, `order_lines_rejected`, `order_status_history`, `order_status_history_rejected`, `fct_order_status_events` → `materialized='incremental'` (delete+insert, grain üzrə `unique_key`). `fct_order_lines` şüurlu şəkildə full-refresh saxlanıldı — o, iki müstəqil mənbədən (orders snapshot + CDC event axını) asılıdır, tək cursor hər ikisini düzgün əhatə edə bilməzdi. Full-refresh baseline ilə incremental nəticə bit-bə-bit eyni olduğu təsdiqləndi.
+- CI/CD: `docker compose up -d --build` yalnız Dockerfile/requirements/compose dəyişəndə işə düşür — DAG/dbt/soda dəyişikliyi (bind-mount olduğu üçün) rebuild tələb etmir.
+- `analytics/queries/00_reconciliation_summary.sql`-in nəticəsi `make analytics`-ə əlavə olundu və commit edildi.

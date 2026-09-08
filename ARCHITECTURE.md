@@ -42,7 +42,7 @@
 - **Storage layout:** month-partition artıq işləməz (150M+ sətir/partition) — **gündəlik** partition-a keçid məcburidir.
 - **Compaction:** mikro-batch-lərdən yaranan kiçik faylların qarşısını almaq üçün **gündəlik** `rewrite_data_files` scheduled job məcburidir.
 - **Ingestion pattern:** hazırkı tək-thread `requests` client bu həcmdə işləməz — paralel/chunked fetch, ya da REST polling əvəzinə Kafka Connect source lazımdır.
-- **SLA:** hazırkı bütün dbt modelləri `materialized='table'` (full refresh) — bu həcmdə hər run bütün tarixçəni yenidən hesablayardı, mümkün deyil. **Incremental** modellərə (`is_incremental()`, unique key üzrə merge) keçid məcburidir.
+- **SLA:** `order_lines`, `order_status_history` (+ `quarantine` qarşılıqları) və `fct_order_status_events` artıq `incremental` (`is_incremental()`, grain üzrə `delete+insert`) — bunlar bronze-un ağır JSON parse+dedup işini yalnız yeni/dəyişmiş sətirlərə tətbiq edir. `fct_order_lines`-i isə **bilərəkdən** full-refresh saxladım: o, iki müstəqil mənbədən (orders snapshot + CDC event axını) asılıdır, tək cursor bu ikisini düzgün əhatə edə bilməz (status YALNIZ event vasitəsilə dəyişəndə order_lines.updated_at dəyişmir, sətir sükutla köhnə qalar). Bu miqyasda (5M/gün) bu artıq mümkün deyil — `fct_order_lines` üçün iki cursorlu (order_lines + order_status_history) watermark dizaynı, ya da status-a görə dəyişən order_id-ləri ayrıca izləyən köməkçi cədvəl lazımdır.
 
 ## 6. Incident ssenarisi — gold-un son 3 günü səhv deploy nəticəsində korlanıb
 
@@ -53,14 +53,15 @@
 4. Əsl bug-ı düzəlt, düzəlişi deploy et.
 5. Düzəldilmiş kodla yalnız korlanmış 3 günü backfill et (Airflow-da konkret tarix aralığı üçün rerun).
 
-**Bizim lokal həllimizdə fərq:** Postgres-də snapshot/rollback yoxdur. Bərpa iki yolla mümkündür: (a) səhv deploy-dan əvvəlki `pg_dump` backup-dan restore, əgər varsa; (b) **bronze-dan tam yenidən qurmaq** — çünki bronze immutable/xam saxlanır, silver/gold istənilən vaxt eyni bronze data-dan yenidən qurula bilər (bu, bizim "bronze xam qalır" dizaynının gizli gücüdür). Fərq: Iceberg-də rollback **saniyələr**, bizdə **tam recompute** (data həcminə görə dəqiqələr-saatlar) — amma hər ikisi düzgün nəticəyə gətirir, çünki bronze toxunulmayıb.
+**Bizim lokal həllimizdə fərq:** Postgres-də snapshot/rollback yoxdur. Bərpa iki yolla mümkündür: (a) səhv deploy-dan əvvəlki `pg_dump` backup-dan restore, əgər varsa; (b) **bronze-dan tam yenidən qurmaq** (`dbt build --full-refresh` — sadə `dbt build` kifayət deyil, çünki `order_lines`/`order_status_history`/`fct_order_status_events` indi `incremental`dır, korlanmış sətirlərin `updated_at`-ı filtrə "köhnə" görünər, yenidən emal olunmaz) — çünki bronze immutable/xam saxlanır, silver/gold istənilən vaxt eyni bronze data-dan yenidən qurula bilər (bu, bizim "bronze xam qalır" dizaynının gizli gücüdür). Fərq: Iceberg-də rollback **saniyələr**, bizdə **tam recompute** (data həcminə görə dəqiqələr-saatlar) — amma hər ikisi düzgün nəticəyə gətirir, çünki bronze toxunulmayıb.
 
 ## 7. Daha çox vaxtım olsaydı
 
 - **CDC simulasiyası (Bonus B1):** Faker ilə sintetik data generasiya edib birbaşa Postgres-ə push edərdim, üstünə Debezium qoşub Kafka-ya yönləndirərdim — beləliklə CDC-ni nəzəri izah yox, əsl stream kimi qurardım.
 - **Iceberg branch/WAP pattern:** catalog qaldırıb Iceberg tətbiq edərdim — silver/gold-a birbaşa yazmaq əvəzinə yeni branch açıb, testləri o branch üzərində işlədib, yalnız keçəndə əsas cədvələ tətbiq edərdim (write-audit-publish) — indiki "əvvəl yaz, sonra test elə" yanaşmasından daha safe.
 - `dim_product`-a da SCD2 (çoxlu snapshot simulyasiya edib eyni `day1`/`day2` naxışı tətbiq edilərdi)
-- dbt modellərini `incremental`-a keçirmək (hazırda hamısı full-refresh table, Hissə 5-dəki miqyasda davam etməz)
+- **`dim_customer`-i (SCD2) incremental etmək:** hazırda full-refresh — sahə-sahə `day1`/`day2` müqayisəsi yalnız 2 snapshot üçün qurulub, bunu N snapshot üçün ümumiləşdirib incremental etmək (hər yeni snapshot gələndə yalnız dəyişən müştəriləri versiyalamaq) əlavə vaxt tələb edirdi, cari həcmdə (844 sətir) faydası yox idi.
+- **`fct_order_lines`-i incremental etmək:** yuxarıda (Hissə 5) izah etdiyim iki-mənbə problemi (orders snapshot + CDC event) səbəbindən indi full-refresh saxladım. Düzgün həll — order_lines VƏ order_status_history-nin hər ikisini əhatə edən iki cursorlu filtr — əlavə mürəkkəblik/risk tələb edir, cari 10K sətirlik həcmdə (0.2s full-refresh) buna dəyməzdi.
 - OpenMetadata/OpenLineage ilə lineage və catalog (Bonus B4)
 - Hər sütuna description (hazırda yalnız açar sütunlarda var)
 - **Airflow-u ayrıca image kimi qurmaq:** hazırda DAG dəyişəndə də CI/CD tam image-i (dbt+soda+asılılıqlar) yenidən build edir. Airflow-u öz image-inə çıxarıb, DAG fayllarını (git-sync və ya bind-mount ilə) ayrıca push etsəydim, adi DAG dəyişikliyi üçün heç bir rebuild lazım olmazdı — deploy daha sürətli olardı.

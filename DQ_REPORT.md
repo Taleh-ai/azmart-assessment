@@ -72,6 +72,6 @@
 | `bronze.orders` | 5202 | — | — |
 | `silver.order_lines` (keçərli) | 10693 | — | — |
 | `quarantine.order_lines` | 15 | — | — |
-| `gold.fct_order_lines` | 10693 | 5,391,188.48 | 4,831,649.83 |
+| `gold.fct_order_lines` | 10693 | 5,391,192.11 | 4,831,654.45 |
 
-Fərq (gross − recognized = 559,538.65 AZN) `is_recognized=false` (CANCELLED/REFUNDED, 1154 sətir) sətirlərin gross məbləğidir — silinməyib, flag ilə ayrılıb (kanonik qayda 3).
+Fərq (gross − recognized = 559,537.66 AZN) `is_recognized=false` (CANCELLED/REFUNDED) sətirlərin gross məbləğidir — silinməyib, flag ilə ayrılıb (kanonik qayda 3). Rəqəmlər `analytics/results/00_reconciliation_summary.csv`-dən (pipeline-generated) götürülüb.
