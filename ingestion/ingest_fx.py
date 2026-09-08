@@ -12,7 +12,7 @@ from ingestion.db import replace_load, run_script
 
 SOURCE = "fx_api"
 DDL_PATH = os.path.join(os.path.dirname(__file__), "ddl.sql")
-DELETE_SQL = "delete from bronze.fx_rates where _load_id = %s"
+DELETE_SQL = "delete from bronze.fx_rates where rate_date >= %s and rate_date < %s"
 INSERT_SQL = "insert into bronze.fx_rates (rate_date, payload, _source, _batch_id, _load_id) values (%s, %s, %s, %s, %s)"
 
 log = logging.getLogger("ingestion")
@@ -51,7 +51,7 @@ def main():
             continue
         rows.append((date, Json(payload), SOURCE, batch_id, load_id))
 
-    replace_load(DELETE_SQL, INSERT_SQL, load_id, rows)
+    replace_load(DELETE_SQL, INSERT_SQL, (args.since, args.until), rows)
 
     log.info("bronze.fx_rates: %d rows, %d dates without rates, load_id %s", len(rows), missing, load_id)
 

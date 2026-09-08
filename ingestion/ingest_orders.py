@@ -10,7 +10,11 @@ from ingestion.db import replace_load, run_script
 
 SOURCE = "orders_api"
 DDL_PATH = os.path.join(os.path.dirname(__file__), "ddl.sql")
-DELETE_SQL = "delete from bronze.orders where _load_id = %s"
+DELETE_SQL = """
+    delete from bronze.orders
+    where (payload->>'updated_at')::timestamptz >= %s
+      and (payload->>'updated_at')::timestamptz < %s
+"""
 INSERT_SQL = "insert into bronze.orders (payload, _source, _batch_id, _load_id) values (%s, %s, %s, %s)"
 
 log = logging.getLogger("ingestion")
@@ -29,7 +33,7 @@ def main():
     batch_id = uuid.uuid4().hex
     load_id = "orders_%s_%s" % (args.since, args.until)
     rows = [(Json(order), SOURCE, batch_id, load_id) for order in fetch_orders(args.since, args.until)]
-    replace_load(DELETE_SQL, INSERT_SQL, load_id, rows)
+    replace_load(DELETE_SQL, INSERT_SQL, (args.since, args.until), rows)
 
     log.info("bronze.orders: %d rows for load_id %s", len(rows), load_id)
 

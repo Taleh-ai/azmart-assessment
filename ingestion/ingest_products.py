@@ -38,7 +38,7 @@ def main():
             for row in csv.DictReader(f)
         ]
 
-    replace_load(DELETE_SQL, INSERT_SQL, LOAD_ID, rows)
+    replace_load(DELETE_SQL, INSERT_SQL, (LOAD_ID,), rows)
 
     log.info("bronze.products: %d rows for load_id %s", len(rows), LOAD_ID)
 
