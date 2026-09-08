@@ -63,3 +63,5 @@
 - dbt modellərini `incremental`-a keçirmək (hazırda hamısı full-refresh table, Hissə 5-dəki miqyasda davam etməz)
 - OpenMetadata/OpenLineage ilə lineage və catalog (Bonus B4)
 - Hər sütuna description (hazırda yalnız açar sütunlarda var)
+- **Airflow-u ayrıca image kimi qurmaq:** hazırda DAG dəyişəndə də CI/CD tam image-i (dbt+soda+asılılıqlar) yenidən build edir. Airflow-u öz image-inə çıxarıb, DAG fayllarını (git-sync və ya bind-mount ilə) ayrıca push etsəydim, adi DAG dəyişikliyi üçün heç bir rebuild lazım olmazdı — deploy daha sürətli olardı.
+- **K3s üzərində qaldırmaq:** daha böyük həcmli sintetik data ilə (Hissə 5-dəki miqyas ssenarisi) real şəraitdə test etmək üçün bütün stack-i yüngül Kubernetes (k3s) üzərinə köçürərdim.
