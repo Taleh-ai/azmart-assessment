@@ -34,6 +34,12 @@ Analitika sorğularını (`analytics/queries/`) real dataya qarşı yenidən iş
 make analytics
 ```
 
+Lineage/catalog (Marquez + OpenLineage, Bonus B4) üçün:
+```bash
+make lineage
+```
+Bu, Marquez-i qaldırır (compose-da `lineage` profili altındadır — adi `make bootstrap` onu qaldırmır, ona görə setup yavaşlamır) və `dbt-ol build` ilə real run-un lineage-ini ora göndərir. UI: `http://localhost:3000`, namespace `azmart`. Dayandırmaq üçün `make lineage-down`.
+
 ## Sübut (evidence)
 
 `docker compose ps` — 6 servis healthy:

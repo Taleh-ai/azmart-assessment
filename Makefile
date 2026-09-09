@@ -1,4 +1,4 @@
-.PHONY: bootstrap backfill run dbt-test analytics down logs
+.PHONY: bootstrap backfill run dbt-test analytics lineage lineage-down down logs
 
 bootstrap:
 	docker compose up -d --build
@@ -21,6 +21,16 @@ analytics:
 		echo "=== $$name ==="; \
 		docker compose exec -T postgres psql -U azmart -d azmart --csv -f - < "$$f" > "analytics/results/$$name.csv"; \
 	done
+
+lineage:
+	docker compose --profile lineage up -d
+	@echo "Marquez qalxir..."
+	@until curl -sf http://127.0.0.1:5050/api/v1/namespaces > /dev/null 2>&1; do sleep 3; done
+	docker compose exec airflow-scheduler bash -c '$$DBT_OL_BIN build --project-dir /opt/airflow/dbt_project --profiles-dir $$DBT_PROFILES_DIR --target-path $$DBT_TARGET_PATH --log-path $$DBT_LOG_PATH --indirect-selection cautious --full-refresh'
+	@echo "Marquez UI: http://localhost:3000  (namespace: azmart)"
+
+lineage-down:
+	docker compose --profile lineage down
 
 down:
 	docker compose down
