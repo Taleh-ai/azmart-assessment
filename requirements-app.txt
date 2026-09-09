@@ -1,5 +1,5 @@
 requests==2.33.1
 psycopg2-binary==2.9.10
-dbt-core
-dbt-postgres
-soda-core-postgres
+dbt-core==1.12.3
+dbt-postgres==1.11.0
+soda-core-postgres==3.5.6

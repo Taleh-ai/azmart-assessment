@@ -11,13 +11,20 @@ models:
           - unique
 
   - name: dim_product
-    description: Məhsul dimension-u — tarixçəsiz, natural key (`product_id`) həm də surrogate key kimi işlədilir.
+    description: >
+      Məhsul dimension-u — tarixçəsiz, natural key (`product_id`) həm də surrogate key kimi işlədilir.
+      `silver.products`-dan yox, `stg_products`-dan qurulur: dimension fact-ın istinad edə biləcəyi
+      BÜTÜN məhsulları örtməlidir, əks halda kataloq qüsuruna görə karantinə düşmüş məhsulun sifarişləri
+      join-dan düşüb gəliri sükutla itirir. Qüsurlu kataloq atributları `null`-lanır və
+      `has_catalog_issue` ilə işarələnir; dublikat və ID-siz sətirlər isə kənarda qalır.
     columns:
       - name: product_id
         description: Məhsul ID-si, surrogate key kimi də istifadə olunur.
         tests:
           - not_null
           - unique
+      - name: has_catalog_issue
+        description: Məhsulun kataloq sətri DQ yoxlamasından keçməyib (mənfi/boş qiymət, dəstəklənməyən valyuta) — atributları `null`-dır.
 
   - name: dim_customer
     description: >
@@ -48,6 +55,24 @@ models:
       - name: line_number
         tests:
           - not_null
+      - name: product_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_id
+      - name: customer_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+      - name: order_date_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
       - name: gross_amount_azn
         description: AZN-ə çevrilmiş ümumi məbləğ (quantity * unit_price * rate_azn).
         tests:
