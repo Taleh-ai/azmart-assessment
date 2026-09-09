@@ -34,11 +34,19 @@ Analitika sorğularını (`analytics/queries/`) real dataya qarşı yenidən iş
 make analytics
 ```
 
-Lineage/catalog (Marquez + OpenLineage, Bonus B4) üçün:
+Lineage/catalog (Marquez + OpenLineage, Bonus B4) **`make run`-un sonunda avtomatik qalxır** — ayrıca bir şey işlətmək lazım deyil. Bitəndə `http://localhost:3000` açıb `azmart` namespace-ini seç.
+
+Marquez compose-da `lineage` profili altındadır, yəni `make bootstrap` onu qaldırmır. Səbəb: image-ləri ~2.25 GB-dır, ilk qurulumun 15 dəqiqə qaydasını sıxmasın deyə yükü `make run` mərhələsinə keçirmişəm (orada onsuz da data yüklənir). Qalxma özü ~10 saniyə çəkir.
+
+Lineage-i ayrıca yeniləmək və ya dayandırmaq üçün:
 ```bash
 make lineage
+make lineage-down
 ```
-Bu, Marquez-i qaldırır (compose-da `lineage` profili altındadır — adi `make bootstrap` onu qaldırmır, ona görə setup yavaşlamır) və `dbt-ol build` ilə real run-un lineage-ini ora göndərir. UI: `http://localhost:3000`, namespace `azmart`. Dayandırmaq üçün `make lineage-down`.
+
+Lineage uydurulmur: `dbt-ol build` real dbt run-unun `manifest.json` və `run_results.json` artefaktlarını oxuyub OpenLineage event-lərinə çevirir. Marquez-də `bronze → staging → silver → gold` zənciri, sütun səviyyəsində lineage və hər cədvəlin test nəticələri (`not_null`, `unique`, `relationships`, reconciliation testləri — keçib-keçmədiyi ilə) görünür.
+
+Airflow-un öz OpenLineage provider-i bilərəkdən söndürülüb (`AIRFLOW__OPENLINEAGE__DISABLED=true`): lineage-i `dbt-ol` verir, provider açıq qalsaydı Marquez sönülü olanda hər task run-unu uğursuz POST cəhdləri ilə yavaşladardı.
 
 ## Sübut (evidence)
 
