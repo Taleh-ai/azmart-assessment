@@ -10,6 +10,7 @@ backfill:
 run: backfill
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-24
 	docker compose exec airflow-scheduler airflow dags test azmart_pipeline 2026-08-25
+	$(MAKE) lineage
 
 
 dbt-test:
@@ -26,7 +27,7 @@ lineage:
 	docker compose --profile lineage up -d
 	@echo "Marquez qalxir..."
 	@until curl -sf http://127.0.0.1:5050/api/v1/namespaces > /dev/null 2>&1; do sleep 3; done
-	docker compose exec airflow-scheduler bash -c '$$DBT_OL_BIN build --project-dir /opt/airflow/dbt_project --profiles-dir $$DBT_PROFILES_DIR --target-path $$DBT_TARGET_PATH --log-path $$DBT_LOG_PATH --indirect-selection cautious --full-refresh'
+	docker compose exec -e OPENLINEAGE_URL=http://marquez-api:5000 -e OPENLINEAGE_NAMESPACE=azmart airflow-scheduler bash -c '$$DBT_OL_BIN build --project-dir /opt/airflow/dbt_project --profiles-dir $$DBT_PROFILES_DIR --target-path $$DBT_TARGET_PATH --log-path $$DBT_LOG_PATH --indirect-selection cautious --full-refresh'
 	@echo "Marquez UI: http://localhost:3000  (namespace: azmart)"
 
 lineage-down:

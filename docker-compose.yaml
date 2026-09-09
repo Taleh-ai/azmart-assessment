@@ -11,6 +11,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
     AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-azmart-local-jwt-secret}
     AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+    AIRFLOW__OPENLINEAGE__DISABLED: "true"
     PYTHONPATH: /opt/airflow
     PYTHONDONTWRITEBYTECODE: "1"
 
@@ -28,9 +29,6 @@ x-airflow-common: &airflow-common
     DBT_BIN: /home/airflow/.local/bin/dbt
     DBT_OL_BIN: /home/airflow/.local/bin/dbt-ol
     SODA_BIN: /home/airflow/.local/bin/soda
-
-    OPENLINEAGE_URL: http://marquez-api:5000
-    OPENLINEAGE_NAMESPACE: azmart
     DBT_PROFILES_DIR: /opt/airflow/dbt_project
     DBT_TARGET_PATH: /opt/airflow/dbt_state/target
     DBT_LOG_PATH: /opt/airflow/dbt_state/logs
@@ -161,7 +159,7 @@ services:
       MARQUEZ_PORT: 5000
       WEB_PORT: 3000
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     restart: unless-stopped
 
 volumes:
