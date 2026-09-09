@@ -38,7 +38,6 @@ x-airflow-common: &airflow-common
     - ./soda:/opt/airflow/soda:ro
     - ./dbt_project:/opt/airflow/dbt_project
     - ./evidence:/opt/airflow/evidence
-    - ./reports:/opt/airflow/reports
     - ./analytics:/opt/airflow/analytics
     - airflow-logs:/opt/airflow/logs
     - dbt-state:/opt/airflow/dbt_state

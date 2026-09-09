@@ -27,7 +27,11 @@ with DAG(
     catchup=True,
     max_active_runs=1,
     tags=["azmart", "bronze"],
-    default_args={"on_failure_callback": alert_on_failure},
+    default_args={
+        "on_failure_callback": alert_on_failure,
+        "retries": 2,
+        "retry_delay": pendulum.duration(minutes=1),
+    },
 ) as dag:
     with TaskGroup(group_id="bronze") as bronze:
         BashOperator(
