@@ -34,19 +34,11 @@ Analitika sorğularını (`analytics/queries/`) real dataya qarşı yenidən iş
 make analytics
 ```
 
-Lineage/catalog (Marquez + OpenLineage, Bonus B4) **`make run`-un sonunda avtomatik qalxır** — ayrıca bir şey işlətmək lazım deyil. Bitəndə `http://localhost:3000` açıb `azmart` namespace-ini seç.
-
-Marquez compose-da `lineage` profili altındadır, yəni `make bootstrap` onu qaldırmır. Səbəb: image-ləri ~2.25 GB-dır, ilk qurulumun 15 dəqiqə qaydasını sıxmasın deyə yükü `make run` mərhələsinə keçirmişəm (orada onsuz da data yüklənir). Qalxma özü ~10 saniyə çəkir.
-
-Lineage-i ayrıca yeniləmək və ya dayandırmaq üçün:
+Lineage/catalog (Marquez, Bonus B4) `make run`-un sonunda **avtomatik dolur** — `http://localhost:3000`, namespace `azmart`. Ayrıca yeniləmək və ya dayandırmaq üçün:
 ```bash
 make lineage
 make lineage-down
 ```
-
-Lineage uydurulmur: `dbt-ol build` real dbt run-unun `manifest.json` və `run_results.json` artefaktlarını oxuyub OpenLineage event-lərinə çevirir. Marquez-də `bronze → staging → silver → gold` zənciri, sütun səviyyəsində lineage və hər cədvəlin test nəticələri (`not_null`, `unique`, `relationships`, reconciliation testləri — keçib-keçmədiyi ilə) görünür.
-
-Airflow-un öz OpenLineage provider-i bilərəkdən söndürülüb (`AIRFLOW__OPENLINEAGE__DISABLED=true`): lineage-i `dbt-ol` verir, provider açıq qalsaydı Marquez sönülü olanda hər task run-unu uğursuz POST cəhdləri ilə yavaşladardı.
 
 ## Sübut (evidence)
 
@@ -68,6 +60,14 @@ Deploy job-un log-u — `"mounted files only, skipping rebuild"` sətri şərtli
 
 ![CI/CD deploy log](evidence/ci-cd-deploy-log.png)
 
+Marquez kataloqu (`make run`-dan sonra) — 62 event, 23 dataset, 31 job, hamısı `COMPLETED`:
+
+![Marquez overview](evidence/marquez-overview.png)
+
+`fct_order_lines`-in lineage qrafı — `bronze.fx_rates` və `silver` mənbələrindən gold-a qədər zəncir, sütun səviyyəsində:
+
+![Marquez lineage graph](evidence/marquez-graph-view.png)
+
 ## Arxitektura xülasəsi
 
 - **Warehouse:** PostgreSQL 16 (bir instans, iki database: `airflow_meta`, `azmart`). DuckDB yox — Hissə 4-də paralel bronze task-lar üçün MVCC lazımdır.
@@ -87,6 +87,8 @@ Deploy job-un log-u — `"mounted files only, skipping rebuild"` sətri şərtli
 - **SCD2 (`dim_customer`):** `dbt snapshot` yox — 2 snapshot eyni anda bronze-da oturduğu üçün tarixçə yaratmazdı. Sahə-sahə müqayisə (`day1`/`day2` window) ilə SQL-də deterministik qurulub. İlk versiyanın `valid_from`-u `2020-01-01`-ə sabitlənib ki, avqustdan əvvəlki sifarişlər də uyğun versiyaya düşsün (real müştəri tarixçəmiz cəmi 2 gündür).
 - **Legacy currency (`AZM`):** real konversiya nisbəti (5000:1, 2006 denominasiyası) bilinmədiyi üçün quarantine edilib, təxmini konversiya edilməyib.
 - **Eyni batch daxilində dublikat (orders):** bronze silmir, silver-də son `updated_at` qalır.
+- **Lineage mənbəyi `dbt-ol`, Airflow provider-i yox:** `AIRFLOW__OPENLINEAGE__DISABLED=true` — provider açıq qalsaydı, Marquez sönülü olanda hər task run-u uğursuz POST cəhdləri ilə yavaşlayardı. `dbt-ol` isə lineage-i real dbt run-unun `manifest.json`/`run_results.json` artefaktlarından çıxarır, ona görə uydurma deyil və Marquez sönülü olsa belə `dbt build`-i sındırmır.
+- **Marquez `lineage` profili altındadır:** image-ləri ~2.25 GB olduğu üçün `make bootstrap`-a yox, `make run`-a bağlanıb — ilk qurulumun 15 dəqiqə qaydası sıxılmasın deyə. Qalxma özü ~10 saniyədir.
 
 ## İş jurnalı
 
@@ -136,3 +138,8 @@ Deploy job-un log-u — `"mounted files only, skipping rebuild"` sətri şərtli
 - **dbt incremental:** `order_lines`, `order_lines_rejected`, `order_status_history`, `order_status_history_rejected`, `fct_order_status_events` → `materialized='incremental'` (delete+insert, grain üzrə `unique_key`). `fct_order_lines` şüurlu şəkildə full-refresh saxlanıldı — o, iki müstəqil mənbədən (orders snapshot + CDC event axını) asılıdır, tək cursor hər ikisini düzgün əhatə edə bilməzdi. Full-refresh baseline ilə incremental nəticə bit-bə-bit eyni olduğu təsdiqləndi.
 - CI/CD: `docker compose up -d --build` yalnız Dockerfile/requirements/compose dəyişəndə işə düşür — DAG/dbt/soda dəyişikliyi (bind-mount olduğu üçün) rebuild tələb etmir.
 - `analytics/queries/00_reconciliation_summary.sql`-in nəticəsi `make analytics`-ə əlavə olundu və commit edildi.
+
+### 10 sentyabr
+- **DAG retry siyasəti:** `retries=2`, `retry_delay=1m`. Real test — `mock-api` dayandırıldı, task `up_for_retry`-ə keçdi, 2 dəqiqə 2 saniyə sonra `failed` oldu və failure callback işə düşdü.
+- **`requirements-app.txt` pinləndi** (`dbt-core`, `dbt-postgres`, `soda-core-postgres`, `openlineage-dbt`) — deterministik build üçün.
+- **Lineage (Bonus B4):** Marquez compose-a `lineage` profili ilə əlavə olundu, `make run`-un sonunda `dbt-ol build` ilə avtomatik dolur. Airflow-un öz OpenLineage provider-i söndürüldü, çünki Marquez sönülü olanda hər task run-unu yavaşladırdı.
